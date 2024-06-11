@@ -62,7 +62,8 @@ def create_users_table():
 def register_user(username, password, age, gender, health_goal):
     conn = create_connection()
     c = conn.cursor()
-    c.execute("INSERT INTO users (username, password, age, gender, health_goal) VALUES (?, ?, ?, ?, ?)", (username, password, age, gender, health_goal))
+    c.execute("INSERT INTO users (username, password, age, gender, health_goal) VALUES (?, ?, ?, ?, ?)", 
+              (username, password, age, gender, health_goal))
     conn.commit()
     conn.close()
 
@@ -96,7 +97,8 @@ def exibir_refeicoes():
 def registrar_receita(nome, ingredientes, modo_preparo):
     conn = create_connection()
     c = conn.cursor()
-    c.execute("INSERT INTO receitas (nome, ingredientes, modo_preparo) VALUES (?, ?, ?)", (nome, ingredientes, modo_preparo))
+    c.execute("INSERT INTO receitas (nome, ingredientes, modo_preparo) VALUES (?, ?, ?)", 
+              (nome, ingredientes, modo_preparo))
     conn.commit()
     conn.close()
 
@@ -142,8 +144,6 @@ def forum_comunidade():
 
 # Função para enviar notificação de lembrete
 def enviar_lembrete_notificacao():
-    # Aqui você pode adicionar a lógica para enviar uma notificação
-    # Por enquanto, vamos apenas exibir uma mensagem simulada
     st.success("Lembrete: Não se esqueça de registrar suas refeições hoje!")
 
 # Função para simular a integração com dispositivos de monitoramento de saúde
@@ -171,7 +171,9 @@ session_state = SessionState.get(logged_in=False, user=None)
 menu = st.sidebar.radio('Menu Principal', ['Login', 'Registro', 'Registrar Refeição', 'Adicionar Receita', 
                                            'Visualizar Receitas', 'Registro de Peso', 'Visualizar Progresso de Peso',
                                            'Calcular IMC', 'Sugestões de Receitas Personalizadas', 
-                                           'Enviar Notificação de Lembre
+                                           'Enviar Notificação de Lembrete', 'Fórum de Comunidade',
+                                           'Integração com Dispositivos de Monitoramento de Saúde'])
+
 # Função para login do usuário
 def login():
     st.subheader("Login")
@@ -204,31 +206,101 @@ def register():
         else:
             st.error("As senhas não coincidem. Por favor, tente novamente.")
 
-# Adicione esta linha ao menu principal para chamar a função do fórum de comunidade
+if menu == 'Login':
+    if not session_state.logged_in:
+        login()
+    else:
+        st.success(f"Você já está logado como {session_state.user}!")
+
+elif menu == 'Registro':
+    register()
+
+elif menu == 'Registrar Refeição':
+    if session_state.logged_in:
+        st.subheader('Registrar Refeição')
+        data = st.date_input('Data')
+        refeicao = st.selectbox('Refeição', ['Café da Manhã', 'Almoço', 'Jantar', 'Lanche'])
+        alimentos = st.text_area('Alimentos Consumidos')
+        if st.button('Registrar'):
+            registrar_refeicao(data, refeicao, alimentos)
+            st.success('Refeição registrada com sucesso!')
+    else:
+        st.warning("Faça login para registrar uma refeição.")
+
+elif menu == 'Adicionar Receita':
+    if session_state.logged_in:
+        st.subheader('Adicionar Receita')
+        nome = st.text_input('Nome da Receita')
+        ingredientes = st.text_area('Ingredientes')
+        modo_preparo = st.text_area('Modo de Preparo')
+        if st.button('Adicionar'):
+            registrar_receita(nome, ingredientes, modo_preparo)
+            st.success('Receita adicionada com sucesso!')
+    else:
+        st.warning("Faça login para adicionar uma receita.")
+
+elif menu == 'Visualizar Receitas':
+    if session_state.logged_in:
+        st.subheader('Visualizar Receitas')
+        receitas = obter_receitas()
+        for receita in receitas:
+            st.write(f"**{receita[1]}**")
+            st.write(f"**Ingredientes:** {receita[2]}")
+            st.write(f"**Modo de Preparo:** {receita[3]}")
+            st.write('---')
+    else:
+        st.warning("Faça login para visualizar as receitas.")
+
+elif menu == 'Registro de Peso':
+    if session_state.logged_in:
+        st.subheader('Registro de Peso')
+        data = st.date_input('Data')
+        peso = st.number_input('Peso (kg)', min_value=0.0, format="%.2f")
+        if st.button('Registrar'):
+            registrar_progresso_peso(data, peso)
+            st.success('Progresso de peso registrado com sucesso!')
+    else:
+        st.warning("Faça login para registrar o peso.")
+
+elif menu == 'Visualizar Progresso de Peso':
+    if session_state.logged_in:
+        st.subheader('Visualizar Progresso de Peso')
+        progresso_peso = obter_progresso_peso()
+        if progresso_peso:
+            df = pd.DataFrame(progresso_peso, columns=['ID', 'Data', 'Peso'])
+            df['Data'] = pd.to_datetime(df['Data'])
+            fig = px.line(df, x='Data', y='Peso', title='Progresso de Peso ao Longo do Tempo')
+            st.plotly_chart(fig)
+        else:
+            st.warning('Nenhum progresso de peso registrado.')
+    else:
+        st.warning("Faça login para visualizar o progresso de peso.")
+
+elif menu == 'Calcular IMC':
+    if session_state.logged_in:
+        st.subheader('Calcular IMC')
+        peso = st.number_input('Peso (kg)', min_value=0.0, format="%.2f")
+        altura = st.number_input('Altura (m)', min_value=0.0, format="%.2f")
+        if st.button('Calcular'):
+            imc = calcular_imc(peso, altura)
+            if imc:
+                st.success(f'Seu IMC é {imc:.2f}')
+            else:
+                st.error('Peso e altura devem ser maiores que zero.')
+    else:
+        st.warning("Faça login para calcular o IMC.")
+
 elif menu == 'Fórum de Comunidade':
     forum_comunidade()
 
-# Adicione esta linha ao menu principal para chamar a função de enviar notificação de lembrete
 elif menu == 'Enviar Notificação de Lembrete':
     if session_state.logged_in:
         enviar_lembrete_notificacao()
     else:
         st.warning("Faça login para receber lembretes.")
 
-# Adicione esta linha ao menu principal para chamar a função de integração com dispositivos de monitoramento
 elif menu == 'Integração com Dispositivos de Monitoramento de Saúde':
     integracao_dispositivos_monitoramento()
-
-# Adicione esta linha ao menu principal para chamar a função de login
-elif menu == 'Login':
-    if not session_state.logged_in:
-        login()
-    else:
-        st.success(f"Você já está logado como {session_state.user}!")
-
-# Adicione esta linha ao menu principal para chamar a função de registro de novo usuário
-elif menu == 'Registro':
-    register()
 
 
 
