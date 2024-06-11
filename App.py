@@ -2,7 +2,6 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 import plotly.express as px
-import SessionState
 
 # Função para criar ou conectar ao banco de dados SQLite
 def create_connection():
@@ -155,6 +154,12 @@ def integracao_dispositivos_monitoramento():
     if connect_button:
         st.success("Dispositivo conectado com sucesso!")
 
+# Função para gerenciar o estado da sessão
+def get_session_state():
+    if 'session_state' not in st.session_state:
+        st.session_state['session_state'] = {'logged_in': False, 'user': None}
+    return st.session_state['session_state']
+
 # Título do aplicativo
 st.title('Aplicativo de Nutrição')
 
@@ -164,8 +169,8 @@ create_recipe_table()
 create_weight_progress_table()
 create_users_table()
 
-# Verifica se o usuário está autenticado
-session_state = SessionState.get(logged_in=False, user=None)
+# Obter estado da sessão
+session_state = get_session_state()
 
 # Menu principal
 menu = st.sidebar.radio('Menu Principal', ['Login', 'Registro', 'Registrar Refeição', 'Adicionar Receita', 
@@ -183,8 +188,8 @@ def login():
     if login_button:
         user = check_user(username, password)
         if user:
-            session_state.logged_in = True
-            session_state.user = username
+            session_state['logged_in'] = True
+            session_state['user'] = username
             st.success(f"Bem-vindo de volta, {username}!")
         else:
             st.error("Usuário ou senha incorretos. Por favor, tente novamente.")
@@ -207,16 +212,16 @@ def register():
             st.error("As senhas não coincidem. Por favor, tente novamente.")
 
 if menu == 'Login':
-    if not session_state.logged_in:
+    if not session_state['logged_in']:
         login()
     else:
-        st.success(f"Você já está logado como {session_state.user}!")
+        st.success(f"Você já está logado como {session_state['user']}!")
 
 elif menu == 'Registro':
     register()
 
 elif menu == 'Registrar Refeição':
-    if session_state.logged_in:
+    if session_state['logged_in']:
         st.subheader('Registrar Refeição')
         data = st.date_input('Data')
         refeicao = st.selectbox('Refeição', ['Café da Manhã', 'Almoço', 'Jantar', 'Lanche'])
@@ -228,7 +233,7 @@ elif menu == 'Registrar Refeição':
         st.warning("Faça login para registrar uma refeição.")
 
 elif menu == 'Adicionar Receita':
-    if session_state.logged_in:
+    if session_state['logged_in']:
         st.subheader('Adicionar Receita')
         nome = st.text_input('Nome da Receita')
         ingredientes = st.text_area('Ingredientes')
@@ -240,7 +245,7 @@ elif menu == 'Adicionar Receita':
         st.warning("Faça login para adicionar uma receita.")
 
 elif menu == 'Visualizar Receitas':
-    if session_state.logged_in:
+    if session_state['logged_in']:
         st.subheader('Visualizar Receitas')
         receitas = obter_receitas()
         for receita in receitas:
@@ -252,7 +257,7 @@ elif menu == 'Visualizar Receitas':
         st.warning("Faça login para visualizar as receitas.")
 
 elif menu == 'Registro de Peso':
-    if session_state.logged_in:
+    if session_state['logged_in']:
         st.subheader('Registro de Peso')
         data = st.date_input('Data')
         peso = st.number_input('Peso (kg)', min_value=0.0, format="%.2f")
@@ -263,7 +268,7 @@ elif menu == 'Registro de Peso':
         st.warning("Faça login para registrar o peso.")
 
 elif menu == 'Visualizar Progresso de Peso':
-    if session_state.logged_in:
+    if session_state['logged_in']:
         st.subheader('Visualizar Progresso de Peso')
         progresso_peso = obter_progresso_peso()
         if progresso_peso:
@@ -277,7 +282,7 @@ elif menu == 'Visualizar Progresso de Peso':
         st.warning("Faça login para visualizar o progresso de peso.")
 
 elif menu == 'Calcular IMC':
-    if session_state.logged_in:
+    if session_state['logged_in']:
         st.subheader('Calcular IMC')
         peso = st.number_input('Peso (kg)', min_value=0.0, format="%.2f")
         altura = st.number_input('Altura (m)', min_value=0.0, format="%.2f")
@@ -291,7 +296,7 @@ elif menu == 'Calcular IMC':
         st.warning("Faça login para calcular o IMC.")
 
 elif menu == 'Sugestões de Receitas Personalizadas':
-    if session_state.logged_in:
+    if session_state['logged_in']:
         st.subheader('Sugestões de Receitas Personalizadas')
         st.write('Aqui você pode encontrar sugestões de receitas personalizadas com base em suas preferências e histórico.')
     else:
@@ -301,14 +306,13 @@ elif menu == 'Fórum de Comunidade':
     forum_comunidade()
 
 elif menu == 'Enviar Notificação de Lembrete':
-    if session_state.logged_in:
+    if session_state['logged_in']:
         enviar_lembrete_notificacao()
     else:
         st.warning("Faça login para receber lembretes.")
 
 elif menu == 'Integração com Dispositivos de Monitoramento de Saúde':
     integracao_dispositivos_monitoramento()
-
 
 
 
