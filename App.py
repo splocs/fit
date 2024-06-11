@@ -130,7 +130,7 @@ def obter_progresso_peso():
 
 # Função para calcular o IMC (Índice de Massa Corporal)
 def calcular_imc(peso, altura):
-    if peso <= 0 ou altura <= 0:
+    if peso <= 0 or altura <= 0:
         return None
     else:
         imc = peso / (altura ** 2)
@@ -308,7 +308,6 @@ elif menu == 'Enviar Notificação de Lembrete':
 
 elif menu == 'Integração com Dispositivos de Monitoramento de Saúde':
     integracao_dispositivos_monitoramento()
-
 
 
 
