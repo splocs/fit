@@ -130,7 +130,7 @@ def obter_progresso_peso():
 
 # Função para calcular o IMC (Índice de Massa Corporal)
 def calcular_imc(peso, altura):
-    if peso <= 0 or altura <= 0:
+    if peso <= 0 ou altura <= 0:
         return None
     else:
         imc = peso / (altura ** 2)
@@ -290,6 +290,13 @@ elif menu == 'Calcular IMC':
     else:
         st.warning("Faça login para calcular o IMC.")
 
+elif menu == 'Sugestões de Receitas Personalizadas':
+    if session_state.logged_in:
+        st.subheader('Sugestões de Receitas Personalizadas')
+        st.write('Aqui você pode encontrar sugestões de receitas personalizadas com base em suas preferências e histórico.')
+    else:
+        st.warning("Faça login para ver sugestões de receitas personalizadas.")
+
 elif menu == 'Fórum de Comunidade':
     forum_comunidade()
 
@@ -301,7 +308,6 @@ elif menu == 'Enviar Notificação de Lembrete':
 
 elif menu == 'Integração com Dispositivos de Monitoramento de Saúde':
     integracao_dispositivos_monitoramento()
-
 
 
 
